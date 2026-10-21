@@ -102,7 +102,7 @@ jobs:
           docker build -t voting-app-worker:${{ github.sha }} ./worker
 
       - name: Scan vote image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: voting-app-vote:${{ github.sha }}
           format: table
@@ -112,7 +112,7 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Scan result image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: voting-app-result:${{ github.sha }}
           format: table
@@ -122,7 +122,7 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Scan worker image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: voting-app-worker:${{ github.sha }}
           format: table
