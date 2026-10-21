@@ -8,3 +8,11 @@ node_modules/
 # Environment files and secrets
 .env
 .env.*
+
+
+# Terraform local files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
