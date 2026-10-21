@@ -4,3 +4,7 @@ bin/
 obj/
 .vs/
 node_modules/
+
+# Environment files and secrets
+.env
+.env.*

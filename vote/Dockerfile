@@ -1,5 +1,5 @@
 # base defines a base stage that uses the official python runtime base image
-FROM python:3.11-slim AS base
+FROM python:3.11-slim@sha256:0a236bf8f0b6013383df04d1cd02cb0abe5fbfa1a7012141d7ff9202b7cb30a6 AS base
 
 # Add curl for healthcheck
 RUN apt-get update && \
@@ -22,8 +22,13 @@ CMD ["python", "app.py"]
 # final defines the stage that will bundle the application for production
 FROM base AS final
 
+# Create a non-root user for production
+RUN useradd --create-home --shell /usr/sbin/nologin appuser
+
 # Copy our code from the current folder to the working directory inside the container
-COPY . .
+COPY --chown=appuser:appuser . .
+
+USER appuser
 
 # Make port 80 available for links and/or publish
 EXPOSE 80
