@@ -16,3 +16,5 @@ node_modules/
 *.tfstate.*
 crash.log
 crash.*.log
+trivy-result.txt
+result/trivy-summary.txt
