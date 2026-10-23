@@ -8,7 +8,7 @@
 # docker buildx build --platform "linux/arm64/v8" .
 
 # build compiles the program for the builder's local platform
-FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:7.0@sha256:d32bd65cf5843f413e81f5d917057c82da99737cb1637e905a1a4bc2e7ec6c8d AS build
+FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:10.0@sha256:747cbade5bfd918a175ac32f8f1d931edec2c7d0d5397a3de72eaef1ac1f66d2 AS build
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG BUILDPLATFORM
@@ -24,13 +24,15 @@ RUN dotnet publish -c release -o /app -a $TARGETARCH --self-contained false --no
 
 # app image
 
-FROM mcr.microsoft.com/dotnet/runtime:7.0@sha256:8cd26108e7a329458e5b84342816ae39b2b38bd041cfdc0b79b8cf1c0e0d376f
+FROM mcr.microsoft.com/dotnet/runtime:10.0@sha256:0cf09aaccf6a9f68900aed4c73fb28fe25bb59ec85de4dea08ba02240a8635f3
+
 WORKDIR /app
-COPY --from=build /app .
 
 # Create a dedicated non-root user
 RUN useradd --create-home --shell /usr/sbin/nologin appuser
-RUN chown -R appuser:appuser /app
+
+# Copy application files with non-root ownership
+COPY --from=build --chown=appuser:appuser /app .
 
 # Run the worker as the non-root user
 USER appuser
