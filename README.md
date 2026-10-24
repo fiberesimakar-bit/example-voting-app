@@ -77,16 +77,15 @@ The `helm/voting-app` directory contains a Helm chart for deploying the Example 
 
 ### Configure the database password
 
-The chart expects an existing Kubernetes Secret named `voting-app-db` with the key `POSTGRES_PASSWORD`.
+The chart expects a Kubernetes Secret named `voting-app-db` in the target
+namespace. The Secret must contain the key `POSTGRES_PASSWORD`.
 
-For this demo, the application currently uses `postgres` as its database password. Create the Secret in the target namespace before installing the chart:
+For an existing deployment, keep the Secret configured with the database's
+current password. Do not recreate or change it just to follow this example.
 
-```shell
-kubectl create secret generic voting-app-db \
-  --from-literal=POSTGRES_PASSWORD=postgres
-```
-
-**Security note:** This is a demo credential. Use a strong, securely managed password and configure the application to use the same credential before using this deployment in production. Do not commit real credentials to Git.
+For a new deployment, create the Secret using a securely entered password.
+Do not put real credentials in this README, commit them to Git, or share them
+in screenshots or logs.
 
 ### Validate the Helm chart
 
