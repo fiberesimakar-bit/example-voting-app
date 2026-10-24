@@ -1,0 +1,71 @@
+
+# Shared settings for the Example Voting App
+imagePullSecrets: []
+
+# Application images built and published by GitHub Actions
+app:
+  imageTag: "40112814e5261344c55fb8c5fc4fccb19bba32c8"
+  vote:
+    repository: ghcr.io/fiberesimakar-bit/example-voting-app-vote
+    replicas: 1
+    service:
+      type: NodePort
+      port: 8080
+      nodePort: 31000
+  result:
+    repository: ghcr.io/fiberesimakar-bit/example-voting-app-result
+    replicas: 1
+    service:
+      type: NodePort
+      port: 8081
+      nodePort: 31001
+  worker:
+    repository: ghcr.io/fiberesimakar-bit/example-voting-app-worker
+    replicas: 1
+
+# Internal supporting services
+redis:
+  image: redis:alpine
+  replicas: 1
+  port: 6379
+
+postgres:
+  image: postgres:15-alpine
+  replicas: 1
+  port: 5432
+  database: postgres
+  username: postgres
+  existingSecret: voting-app-db
+  passwordSecretKey: POSTGRES_PASSWORD
+
+# Database storage
+persistence:
+  enabled: true
+  size: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+
+# Resource requests and limits
+resources:
+  vote:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  result:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  worker:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

@@ -60,6 +60,65 @@ kubectl delete -f k8s-specifications/
 
 The voting application only accepts one vote per client browser. It does not register additional votes if a vote has already been submitted from a client.
 
-This isn't an example of a properly architected perfectly designed distributed app... it's just a simple
+This isn't an example of a properly architected, perfectly designed distributed app... it's just a simple
 example of the various types of pieces and languages you might see (queues, persistent data, etc), and how to
 deal with them in Docker at a basic level.
+
+## Deploy with Helm
+
+The `helm/voting-app` directory contains a Helm chart for deploying the Example Voting App to a Kubernetes cluster.
+
+### Prerequisites
+
+- A running Kubernetes cluster.
+- `kubectl` configured to access the cluster.
+- Helm installed.
+- The application container images published to GitHub Container Registry (GHCR).
+
+### Configure the database password
+
+The chart expects an existing Kubernetes Secret named `voting-app-db` with the key `POSTGRES_PASSWORD`.
+
+For this demo, the application currently uses `postgres` as its database password. Create the Secret in the target namespace before installing the chart:
+
+```shell
+kubectl create secret generic voting-app-db \
+  --from-literal=POSTGRES_PASSWORD=postgres
+```
+
+**Security note:** This is a demo credential. Use a strong, securely managed password and configure the application to use the same credential before using this deployment in production. Do not commit real credentials to Git.
+
+### Validate the Helm chart
+
+From the repository root, run:
+
+```shell
+helm lint helm/voting-app
+helm template test helm/voting-app
+```
+
+### Install the chart
+
+After configuring `kubectl` for your intended cluster and creating the database Secret, install the chart:
+
+```shell
+helm install voting-app helm/voting-app
+```
+
+The vote application is configured to use NodePort `31000`, and the results application uses NodePort `31001`. Access them using the appropriate cluster node address and ports, subject to your cluster's networking configuration.
+
+### Upgrade or remove the release
+
+To upgrade the release after changing the chart:
+
+```shell
+helm upgrade voting-app helm/voting-app
+```
+
+To uninstall the release:
+
+```shell
+helm uninstall voting-app
+```
+
+Check persistent volume claims and retained data separately before removing or recreating database storage.

@@ -1,0 +1,22 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "voting-app.fullname" . }}-vote
+  labels:
+    app.kubernetes.io/name: voting-app
+    app.kubernetes.io/component: vote
+spec:
+  type: {{ .Values.app.vote.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.app.vote.service.port }}
+      targetPort: 80
+      protocol: TCP
+      {{- if and (eq .Values.app.vote.service.type "NodePort") .Values.app.vote.service.nodePort }}
+      nodePort: {{ .Values.app.vote.service.nodePort }}
+      {{- end }}
+  selector:
+    app.kubernetes.io/name: voting-app
+    app.kubernetes.io/component: vote
+
