@@ -121,3 +121,32 @@ helm uninstall voting-app
 ```
 
 Check persistent volume claims and retained data separately before removing or recreating database storage.
+
+### Roll back a Helm release
+
+View the release history:
+
+```shell
+helm history voting-app
+```
+
+Roll back to the previous revision:
+
+```shell
+helm rollback voting-app
+```
+
+To roll back to a specific revision, replace `<REVISION>` with the revision number shown in the history:
+
+```shell
+helm rollback voting-app <REVISION>
+```
+
+Verify the release status after rollback:
+
+```shell
+helm status voting-app
+helm history voting-app
+```
+
+A rollback restores the selected Helm release configuration. Verify application health and database connectivity afterward; database data is not automatically reverted by a Helm rollback.
