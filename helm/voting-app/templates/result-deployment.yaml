@@ -26,6 +26,12 @@ spec:
         - name: result
           image: "{{ .Values.app.result.repository }}:{{ .Values.app.imageTag }}"
           imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.existingSecret }}
+                  key: {{ .Values.postgres.passwordSecretKey }}
           ports:
             - name: http
               containerPort: 80

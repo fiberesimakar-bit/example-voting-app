@@ -26,5 +26,11 @@ spec:
         - name: worker
           image: "{{ .Values.app.worker.repository }}:{{ .Values.app.imageTag }}"
           imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.existingSecret }}
+                  key: {{ .Values.postgres.passwordSecretKey }}
           resources:
             {{- toYaml .Values.resources.worker | nindent 12 }}

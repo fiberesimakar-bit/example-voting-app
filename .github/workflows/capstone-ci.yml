@@ -1,4 +1,3 @@
-
 name: Capstone CI
 
 on:
@@ -12,11 +11,6 @@ on:
 permissions:
   contents: read
   packages: write
-  id-token: write
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/example-voting-app
 
 jobs:
   build-and-test:
@@ -47,31 +41,53 @@ jobs:
 
       - name: Wait for application services
         run: |
-          for i in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl -fsS http://localhost:8080/ >/dev/null &&
                curl -fsS http://localhost:8081/ >/dev/null; then
               echo "Vote and result services are responding."
               exit 0
             fi
+
             sleep 2
           done
-          echo "Application services did not become ready."
+
+          echo "FAIL: Application services did not become ready."
           docker compose ps
           docker compose logs
           exit 1
 
       - name: Submit a test vote and verify it is stored
         run: |
-          before=$(docker compose exec -T db psql -U postgres -d postgres -tAc "SELECT COUNT(*) FROM votes;")
+          before=""
+
+          for _ in $(seq 1 30); do
+            before=$(docker compose exec -T db psql -U postgres -d postgres -tAc "SELECT COUNT(*) FROM votes;" 2>/dev/null) || before=""
+
+            if [[ "$before" =~ ^[0-9]+$ ]]; then
+              break
+            fi
+
+            sleep 2
+          done
+
+          if ! [[ "$before" =~ ^[0-9]+$ ]]; then
+            echo "FAIL: Could not read the votes table."
+            docker compose logs
+            exit 1
+          fi
+
           echo "Votes before test: $before"
 
-          curl -fsS -X POST --data "vote=b" http://localhost:8080/ >/dev/null
+          if ! curl -fsS -X POST --data "vote=b" http://localhost:8080/ >/dev/null; then
+            echo "FAIL: Could not submit the test vote."
+            docker compose logs
+            exit 1
+          fi
 
-          for i in $(seq 1 30); do
-            current=$(docker compose exec -T db psql -U postgres -d postgres -tAc "SELECT COUNT(*) FROM votes;")
-            echo "Votes after waiting: $current"
+          for _ in $(seq 1 30); do
+            current=$(docker compose exec -T db psql -U postgres -d postgres -tAc "SELECT COUNT(*) FROM votes;" 2>/dev/null) || current=""
 
-            if [ "$current" -gt "$before" ]; then
+            if [[ "$current" =~ ^[0-9]+$ ]] && [ "$current" -gt "$before" ]; then
               echo "PASS: The test vote was recorded in PostgreSQL."
               exit 0
             fi
@@ -135,21 +151,14 @@ jobs:
   publish-images:
     name: Publish images to GHCR
     runs-on: ubuntu-latest
-    needs: scan-images
+    needs:
+      - build-and-test
+      - scan-images
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3

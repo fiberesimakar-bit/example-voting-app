@@ -1,40 +1,42 @@
-# base defines a base stage that uses the official python runtime base image
+
+# Base stage: official Python runtime image, pinned by digest
 FROM python:3.11-slim@sha256:0a236bf8f0b6013383df04d1cd02cb0abe5fbfa1a7012141d7ff9202b7cb30a6 AS base
 
-# Add curl for healthcheck
+# Install curl for healthchecks and the fixed Brotli security package
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl libbrotli1 && \
     rm -rf /var/lib/apt/lists/*
 
 # Set the application directory
 WORKDIR /usr/local/app
 
-# Install our requirements.txt
+# Install Python dependencies
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir --upgrade "jaraco.context>=6.1.0" "wheel>=0.46.2" && \
     find /usr/local/lib -path '*/pip/_vendor/bom.cdx.json' -delete
 
-# dev defines a stage for development, where it'll watch for filesystem changes
+# Development stage
 FROM base AS dev
 RUN pip install watchdog
 ENV FLASK_ENV=development
 CMD ["python", "app.py"]
 
-# final defines the stage that will bundle the application for production
+# Production stage
 FROM base AS final
 
-# Create a non-root user for production
+# Create a non-root user
 RUN useradd --create-home --shell /usr/sbin/nologin appuser
 
-# Copy our code from the current folder to the working directory inside the container
+# Copy application files with the correct ownership
 COPY --chown=appuser:appuser . .
 
+# Run as a non-root user
 USER appuser
 
-# Make port 80 available for links and/or publish
+# Expose application port
 EXPOSE 80
 
-# Define our command to be run when launching the container
+# Start the application
 CMD ["gunicorn", "app:app", "-b", "0.0.0.0:80", "--log-file", "-", "--access-logfile", "-", "--workers", "4", "--keep-alive", "0"]

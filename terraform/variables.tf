@@ -17,9 +17,8 @@ variable "instance_type" {
   default     = "t3.small"
 }
 
-
 variable "allowed_api_cidr" {
   description = "Public IP address allowed to access the Kubernetes API"
   type        = string
-  default     = "102.204.76.108/32"
+  default     = "197.211.59.88/32"
 }

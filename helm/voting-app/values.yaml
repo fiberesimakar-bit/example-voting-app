@@ -4,7 +4,7 @@ imagePullSecrets: []
 
 # Application images built and published by GitHub Actions
 app:
-  imageTag: "40112814e5261344c55fb8c5fc4fccb19bba32c8"
+  imageTag: "9f044759ccbb48978634b0a196c5e64f61d4665d"
   vote:
     repository: ghcr.io/fiberesimakar-bit/example-voting-app-vote
     replicas: 1
@@ -44,7 +44,7 @@ persistence:
   size: 1Gi
   accessModes:
     - ReadWriteOnce
-  storageClassName: ""
+  storageClassName: "gp2"
 
 # Resource requests and limits
 resources:
